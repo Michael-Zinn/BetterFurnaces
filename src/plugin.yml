@@ -1,0 +1,5 @@
+name: BetterFurnaces
+description: Adds left-click functionality to furnaces based on item in hand
+author: daemitus
+main: betterfurnaces.BetterFurnaces
+version: 1.0
