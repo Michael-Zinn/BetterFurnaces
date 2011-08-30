@@ -1,5 +1,6 @@
 package betterfurnaces;
 
+import com.daemitus.lockette.Lockette;
 import com.griefcraft.lwc.LWCPlugin;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -9,7 +10,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
-import org.yi.acru.bukkit.Lockette.Lockette;
 
 public class PlayerListener extends org.bukkit.event.player.PlayerListener {
 
@@ -33,17 +33,10 @@ public class PlayerListener extends org.bukkit.event.player.PlayerListener {
     public PlayerListener(final BetterFurnaces plugin) {
         this.plugin = plugin;
         lockette = (Lockette) plugin.getServer().getPluginManager().getPlugin("Lockette");
-        if (lockette != null) {
-            locketteEnabled = true;
-        } else {
-            locketteEnabled = false;
-        }
+        locketteEnabled = lockette == null ? false : true;
+
         lwc = (LWCPlugin) plugin.getServer().getPluginManager().getPlugin("LWC");
-        if (lwc != null) {
-            lwcEnabled = true;
-        } else {
-            lwcEnabled = false;
-        }
+        lwcEnabled = lwc == null ? false : true;
     }
 
     @Override
@@ -52,12 +45,13 @@ public class PlayerListener extends org.bukkit.event.player.PlayerListener {
             return;
         if (!event.getAction().equals(Action.LEFT_CLICK_BLOCK))
             return;
-        if (!event.getClickedBlock().getType().equals(Material.FURNACE)
-            && !event.getClickedBlock().getType().equals(Material.BURNING_FURNACE))
+        Block block = event.getClickedBlock();
+        if (!block.getType().equals(Material.FURNACE)
+            && !block.getType().equals(Material.BURNING_FURNACE))
             return;
 
         Player player = event.getPlayer();
-        Block block = event.getClickedBlock();
+
         if (!checkPermission(player, block)) {
             player.sendMessage(tag + "Permission denied for this furnace");
             return;
@@ -150,10 +144,7 @@ public class PlayerListener extends org.bukkit.event.player.PlayerListener {
     private boolean checkPermission(Player player, Block block) {
         boolean perm = true;
         if (locketteEnabled) {
-            String pname = Lockette.getProtectedOwner(block);
-            if (pname != null) {
-                perm = perm && pname.compareTo(player.getName()) == 0;
-            }
+            return Lockette.isAuthorized(player, block);
         }
         if (lwcEnabled) {
             perm = perm && lwc.getLWC().canAccessProtection(player, block);
